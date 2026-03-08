@@ -7,6 +7,10 @@
 
 Works with Claude Desktop, Claude Code, Cursor, Windsurf, and any MCP-compatible client.
 
+<a href="https://glama.ai/mcp/servers/PostcardBot/postcardbot-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/PostcardBot/postcardbot-mcp-server/badge" alt="postcardbot-mcp-server MCP server" />
+</a>
+
 ## Quick Start
 
 ### 1. Get an API key
