@@ -1,0 +1,39 @@
+{
+  "name": "@postcardbot/mcp-server",
+  "version": "1.1.0",
+  "description": "MCP server for sending physical postcards via Postcard.bot. Let AI agents send real postcards worldwide.",
+  "main": "dist/index.js",
+  "bin": {
+    "postcardbot-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "mcp",
+    "postcard",
+    "postcardbot",
+    "ai",
+    "claude",
+    "physical-mail",
+    "modelcontextprotocol"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/postcardbot/mcp-server"
+  },
+  "homepage": "https://postcard.bot/developers"
+}
