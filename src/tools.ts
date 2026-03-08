@@ -14,7 +14,7 @@ export const TOOLS = [
   {
     name: 'send_postcard',
     description:
-      'Send a physical postcard that will be printed and mailed to a real address. ' +
+      'Send a physical postcard that will be printed and shipped to a real address. Delivery takes 5-10 business days. ' +
       'Price depends on volume tier based on lifetime top-up (from $0.72–$1.99 USA, $1.99–$2.99 international). ' +
       'Charged from the user\'s prepaid Postcard.bot balance. ' +
       'Use check_balance to see current pricing tier before sending. ' +

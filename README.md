@@ -49,7 +49,7 @@ Then set the environment variable `POSTCARDBOT_API_KEY` in your shell.
 
 ### `send_postcard`
 
-Send a physical postcard. It will be printed and mailed within 24 hours.
+Send a physical postcard. Cards are printed and shipped within 24 hours. Delivery takes 5-10 business days.
 
 **Parameters:**
 - `to` — Recipient address (`name`, `address_line1`, `city` required; `address_line2`, `state`, `zip`, `country` optional)
