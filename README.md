@@ -3,6 +3,10 @@
 [![npm version](https://img.shields.io/npm/v/@postcardbot/mcp-server)](https://www.npmjs.com/package/@postcardbot/mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+<a href="https://glama.ai/mcp/servers/PostcardBot/postcardbot-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/PostcardBot/postcardbot-mcp-server/badge" alt="PostcardBot MCP server" />
+</a>
+
 **Send real postcards from code.** MCP server for [Postcard.bot](https://postcard.bot) — let AI agents send physical postcards worldwide.
 
 Works with Claude Desktop, Claude Code, Cursor, Windsurf, and any MCP-compatible client.
