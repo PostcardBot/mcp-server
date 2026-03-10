@@ -16,7 +16,7 @@ class PostcardBotClient {
             headers: {
                 'Authorization': `Bearer ${this.apiKey}`,
                 'Content-Type': 'application/json',
-                'User-Agent': '@postcardbot/mcp-server/1.1.0',
+                'User-Agent': '@postcardbot/mcp-server/1.1.1',
             },
             ...(body ? { body: JSON.stringify(body) } : {}),
         });
@@ -45,6 +45,15 @@ class PostcardBotClient {
     }
     async getBalance() {
         return this.request('GET', '/balance');
+    }
+    async listWebhooks() {
+        return this.request('GET', '/webhooks');
+    }
+    async createWebhook(params) {
+        return this.request('POST', '/webhooks', params);
+    }
+    async deleteWebhook(id) {
+        return this.request('DELETE', `/webhooks/${encodeURIComponent(id)}`);
     }
 }
 exports.PostcardBotClient = PostcardBotClient;

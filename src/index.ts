@@ -24,7 +24,7 @@ const client = new PostcardBotClient(
 )
 
 const server = new Server(
-  { name: '@postcardbot/mcp-server', version: '1.1.0' },
+  { name: '@postcardbot/mcp-server', version: '1.1.1' },
   { capabilities: { tools: {} } }
 )
 
@@ -57,24 +57,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'bulk_send': {
         const result = await client.bulkSend(args as unknown as Parameters<typeof client.bulkSend>[0])
-        const lines = [
-          `Bulk send complete!`,
-          ``,
-          `Bulk ID: ${result.bulk_id}`,
-          `Total: ${result.total} | Sent: ${result.succeeded} | Failed: ${result.failed}`,
-          `Total cost: $${result.total_cost.toFixed(2)}`,
-          `Balance remaining: $${result.balance_remaining.toFixed(2)}`,
-        ]
-        if (result.failed > 0) {
-          lines.push(``, `Failed postcards:`)
-          for (const r of result.results.filter(r => r.status === 'failed')) {
-            lines.push(`  #${r.index}: ${r.error} (refunded $${r.refunded?.toFixed(2)})`)
-          }
-        }
         return {
           content: [{
             type: 'text',
-            text: lines.join('\n'),
+            text: [
+              `Bulk job queued!`,
+              ``,
+              `Bulk ID: ${result.bulk_id}`,
+              `Total recipients: ${result.total}`,
+              `Reserved cost: $${result.total_cost.toFixed(2)}`,
+              `Status: ${result.status}`,
+              ``,
+              `Cards will be processed in background batches (~25/minute).`,
+              `Poll status: ${result.status_url}`,
+            ].join('\n'),
           }],
         }
       }
@@ -104,6 +100,52 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             type: 'text',
             text: JSON.stringify(result, null, 2),
           }],
+        }
+      }
+
+      case 'list_webhooks': {
+        const result = await client.listWebhooks()
+        if (!result.webhooks.length) {
+          return {
+            content: [{ type: 'text', text: 'No webhooks registered. Use create_webhook to add one.' }],
+          }
+        }
+        const lines = [`${result.webhooks.length} webhook(s):`, '']
+        for (const wh of result.webhooks) {
+          lines.push(`${wh.id} — ${wh.url}`)
+          lines.push(`  Events: ${wh.events.join(', ')}`)
+          lines.push(`  Active: ${wh.active}`)
+          lines.push('')
+        }
+        return { content: [{ type: 'text', text: lines.join('\n') }] }
+      }
+
+      case 'create_webhook': {
+        const typedArgs = args as { url: string; events: string[] }
+        const result = await client.createWebhook({ url: typedArgs.url, events: typedArgs.events })
+        return {
+          content: [{
+            type: 'text',
+            text: [
+              `Webhook created!`,
+              ``,
+              `ID: ${result.id}`,
+              `URL: ${result.url}`,
+              `Events: ${result.events.join(', ')}`,
+              `Secret: ${result.secret}`,
+              ``,
+              `IMPORTANT: Save the secret above — it will not be shown again.`,
+              `Use it to verify webhook signatures (HMAC-SHA256 in X-PostcardBot-Signature header).`,
+            ].join('\n'),
+          }],
+        }
+      }
+
+      case 'delete_webhook': {
+        const typedArgs = args as { webhook_id: string }
+        await client.deleteWebhook(typedArgs.webhook_id)
+        return {
+          content: [{ type: 'text', text: `Webhook ${typedArgs.webhook_id} deleted.` }],
         }
       }
 

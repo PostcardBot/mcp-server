@@ -15,7 +15,7 @@ export const TOOLS = [
     name: 'send_postcard',
     description:
       'Send a physical postcard that will be printed and shipped to a real address. Delivery takes 5-10 business days. ' +
-      'Price depends on volume tier based on lifetime top-up (from $0.72–$1.99 USA, $1.99–$2.99 international). ' +
+      'Price depends on volume tier based on lifetime top-up (from $0.69–$1.99 USA, $1.99–$2.99 international). ' +
       'Charged from the user\'s prepaid Postcard.bot balance. ' +
       'Use check_balance to see current pricing tier before sending. ' +
       'Requires an image URL (publicly accessible) and a message (max 350 characters).',
@@ -62,7 +62,7 @@ export const TOOLS = [
     name: 'get_pricing',
     description:
       'Get postcard pricing tiers based on lifetime top-up amount. ' +
-      'USA from $1.99 (<$50) down to $0.72 ($5000+), ' +
+      'USA from $1.99 (<$50) down to $0.69 ($5000+), ' +
       'International from $2.99 down to $1.99.',
     inputSchema: {
       type: 'object' as const,
@@ -72,16 +72,17 @@ export const TOOLS = [
   {
     name: 'bulk_send',
     description:
-      'Send the same postcard to multiple recipients at once. Same message, image, and return address ' +
-      'for all cards — only the recipient addresses differ. Maximum 500 recipients per request. ' +
-      'Total cost is deducted upfront from balance; failed cards are automatically refunded. ' +
-      'Volume pricing applies based on your tier.',
+      'Send the same postcard to multiple recipients (async). Same message, image, and return address ' +
+      'for all cards — only the recipient addresses differ. Up to 5,000 recipients per request. ' +
+      'Total cost is reserved upfront; failed cards are automatically refunded. ' +
+      'Returns a bulk_id immediately — cards are processed in background batches. ' +
+      'Use check_status with the bulk_id to poll progress.',
     inputSchema: {
       type: 'object' as const,
       properties: {
         recipients: {
           type: 'array' as const,
-          description: 'Array of recipient addresses (max 500)',
+          description: 'Array of recipient addresses (max 5,000)',
           items: {
             type: 'object' as const,
             properties: addressProperties,
@@ -106,6 +107,52 @@ export const TOOLS = [
         },
       },
       required: ['recipients', 'from', 'message', 'image_url'],
+    },
+  },
+  {
+    name: 'list_webhooks',
+    description:
+      'List all registered webhooks for your account. ' +
+      'Webhooks send real-time notifications to your URL when postcard events occur.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {},
+    },
+  },
+  {
+    name: 'create_webhook',
+    description:
+      'Register a webhook URL to receive postcard event notifications (sent, delivered, failed, returned). ' +
+      'Events are signed with HMAC-SHA256. The signing secret is returned only once — save it securely. ' +
+      'URL must use HTTPS. Maximum 10 webhooks per account.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        url: {
+          type: 'string' as const,
+          description: 'HTTPS URL to receive webhook POST requests',
+        },
+        events: {
+          type: 'array' as const,
+          description: 'Event types to subscribe to: postcard.created, postcard.sent, postcard.delivered, postcard.failed, postcard.returned',
+          items: { type: 'string' as const },
+        },
+      },
+      required: ['url', 'events'],
+    },
+  },
+  {
+    name: 'delete_webhook',
+    description: 'Delete a registered webhook by its ID.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        webhook_id: {
+          type: 'string' as const,
+          description: 'The webhook ID (wh_...)',
+        },
+      },
+      required: ['webhook_id'],
     },
   },
   {

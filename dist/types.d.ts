@@ -76,22 +76,29 @@ export interface BulkSendParams {
     message: string;
     image_url: string;
 }
-export interface BulkRecipientResult {
-    index: number;
-    id: string | null;
-    status: 'sent' | 'failed';
-    to?: string;
-    error?: string;
-    refunded?: number;
-}
 export interface BulkSendResponse {
     bulk_id: string;
+    status: 'queued';
     total: number;
-    succeeded: number;
-    failed: number;
     total_cost: number;
-    balance_remaining: number;
-    results: BulkRecipientResult[];
+    status_url: string;
+    message: string;
+}
+export interface WebhookResponse {
+    id: string;
+    url: string;
+    events: string[];
+    secret?: string;
+    active: boolean;
+    created_at: string;
+    updated_at?: string;
+}
+export interface WebhookListResponse {
+    webhooks: WebhookResponse[];
+}
+export interface CreateWebhookParams {
+    url: string;
+    events: string[];
 }
 export interface ApiError {
     error: string;

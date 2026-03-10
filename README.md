@@ -11,7 +11,39 @@
 
 Works with Claude Desktop, Claude Code, Cursor, Windsurf, and any MCP-compatible client.
 
-## Quick Start
+## Hosted Server (Recommended)
+
+The easiest way to get started — no API key needed, no local install. Just add the URL and sign in with your Postcard.bot account:
+
+```
+https://postcard.bot/api/mcp
+```
+
+**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "postcardbot": {
+      "url": "https://postcard.bot/api/mcp"
+    }
+  }
+}
+```
+
+**Claude Code:**
+
+```bash
+claude mcp add --transport http postcardbot https://postcard.bot/api/mcp
+```
+
+Your MCP client will open a browser for you to sign in with Google or email. Click "Allow" and you're ready to send postcards.
+
+---
+
+## Local Server (npm)
+
+If you prefer running the server locally with an API key:
 
 ### 1. Get an API key
 
@@ -19,7 +51,7 @@ Sign up at [postcard.bot](https://postcard.bot), go to your [account page](https
 
 ### 2. Add balance
 
-Add credits at [postcard.bot/buy-credits](https://postcard.bot/buy-credits) or via the API. Prepaid balance — volume pricing from $0.72/postcard.
+Add credits at [postcard.bot/buy-credits](https://postcard.bot/buy-credits) or via the API. Prepaid balance — volume pricing from $0.69/postcard.
 
 ### 3. Configure your MCP client
 
@@ -66,18 +98,17 @@ Send a physical postcard. Cards are printed and shipped within 24 hours. Deliver
 
 ### `bulk_send`
 
-Send the same postcard to multiple recipients at once. Same message, image, and return address for all cards.
+Send the same postcard to multiple recipients (async). Up to 5,000 recipients per request. Cards are processed in background batches.
 
 **Parameters:**
-- `recipients` — Array of recipient addresses (max 500, same fields as `to` above)
+- `recipients` — Array of recipient addresses (max 5,000, same fields as `to` above)
 - `from` — Sender/return address (same for all postcards)
 - `message` — Back-of-card message (max 350 characters)
 - `image_url` — Front image URL (publicly accessible, min 1875x1275px recommended)
 
-**Example prompt:**
-> "Send a holiday postcard to my 3 friends: Jane at 123 Main St SF CA, John at 456 Oak Ave NYC NY, and Bob at 789 Pine Rd Austin TX"
+Returns a `bulk_id` immediately. Cards are processed in the background (~25/minute). Use `check_status` to poll progress.
 
-Total cost is deducted upfront. Failed cards are automatically refunded.
+Total cost is reserved upfront. Failed cards are automatically refunded.
 
 ### `check_balance`
 
@@ -93,6 +124,27 @@ Check delivery status of a previously sent postcard.
 
 **Parameters:**
 - `postcard_id` — The ID returned from `send_postcard`
+
+### `list_webhooks`
+
+List all registered webhooks for your account.
+
+### `create_webhook`
+
+Register a URL to receive postcard event notifications (sent, delivered, failed, returned). URL must use HTTPS. Max 10 webhooks per account.
+
+**Parameters:**
+- `url` — HTTPS URL to receive webhook POST requests
+- `events` — Event types: `postcard.created`, `postcard.sent`, `postcard.delivered`, `postcard.failed`, `postcard.returned`
+
+The signing secret is returned only once — save it securely. Events are signed with HMAC-SHA256 in the `X-PostcardBot-Signature` header.
+
+### `delete_webhook`
+
+Delete a registered webhook by its ID.
+
+**Parameters:**
+- `webhook_id` — The webhook ID (wh_...)
 
 ## REST API
 
@@ -125,12 +177,13 @@ Volume pricing (based on lifetime top-up amount):
 
 | Tier | Lifetime top-up | USA | International |
 |------|-----------------|-----|---------------|
-| Starter | $0-$49 | $1.99 | $2.99 |
-| Bronze | $50-$99 | $1.49 | $2.49 |
-| Silver | $100-$499 | $1.29 | $2.29 |
-| Gold | $500-$999 | $0.99 | $2.15 |
-| Platinum | $1,000-$4,999 | $0.85 | $2.05 |
-| Diamond | $5,000+ | $0.72 | $1.99 |
+| Pay-as-you-go | $0 | $1.99 | $2.99 |
+| Starter | $1-$19 | $1.49 | $2.49 |
+| Bronze | $20-$49 | $1.29 | $2.29 |
+| Silver | $50-$199 | $0.99 | $1.99 |
+| Gold | $200-$499 | $0.85 | $1.85 |
+| Platinum | $500-$999 | $0.79 | $1.79 |
+| Diamond | $1,000+ | $0.69 | $1.69 |
 
 ## Links
 

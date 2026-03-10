@@ -1,4 +1,4 @@
-import type { SendPostcardParams, SendPostcardResponse, BulkSendParams, BulkSendResponse, PostcardStatusResponse, PricingResponse, BalanceResponse } from './types.js';
+import type { SendPostcardParams, SendPostcardResponse, BulkSendParams, BulkSendResponse, PostcardStatusResponse, PricingResponse, BalanceResponse, CreateWebhookParams, WebhookResponse, WebhookListResponse } from './types.js';
 export declare class PostcardBotClient {
     private apiKey;
     private baseUrl;
@@ -9,4 +9,9 @@ export declare class PostcardBotClient {
     getPostcardStatus(id: string): Promise<PostcardStatusResponse>;
     getPricing(): Promise<PricingResponse>;
     getBalance(): Promise<BalanceResponse>;
+    listWebhooks(): Promise<WebhookListResponse>;
+    createWebhook(params: CreateWebhookParams): Promise<WebhookResponse>;
+    deleteWebhook(id: string): Promise<{
+        deleted: boolean;
+    }>;
 }

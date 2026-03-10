@@ -6,6 +6,9 @@ import type {
   PostcardStatusResponse,
   PricingResponse,
   BalanceResponse,
+  CreateWebhookParams,
+  WebhookResponse,
+  WebhookListResponse,
 } from './types.js'
 
 const DEFAULT_BASE_URL = 'https://postcard.bot'
@@ -26,7 +29,7 @@ export class PostcardBotClient {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'User-Agent': '@postcardbot/mcp-server/1.1.0',
+        'User-Agent': '@postcardbot/mcp-server/1.1.1',
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     })
@@ -63,5 +66,17 @@ export class PostcardBotClient {
 
   async getBalance(): Promise<BalanceResponse> {
     return this.request<BalanceResponse>('GET', '/balance')
+  }
+
+  async listWebhooks(): Promise<WebhookListResponse> {
+    return this.request<WebhookListResponse>('GET', '/webhooks')
+  }
+
+  async createWebhook(params: CreateWebhookParams): Promise<WebhookResponse> {
+    return this.request<WebhookResponse>('POST', '/webhooks', params)
+  }
+
+  async deleteWebhook(id: string): Promise<{ deleted: boolean }> {
+    return this.request<{ deleted: boolean }>('DELETE', `/webhooks/${encodeURIComponent(id)}`)
   }
 }

@@ -83,6 +83,9 @@ export declare const TOOLS: ({
                 description: string;
             };
             recipients?: undefined;
+            url?: undefined;
+            events?: undefined;
+            webhook_id?: undefined;
             postcard_id?: undefined;
         };
         required: string[];
@@ -98,6 +101,9 @@ export declare const TOOLS: ({
             message?: undefined;
             image_url?: undefined;
             recipients?: undefined;
+            url?: undefined;
+            events?: undefined;
+            webhook_id?: undefined;
             postcard_id?: undefined;
         };
         required?: undefined;
@@ -190,6 +196,57 @@ export declare const TOOLS: ({
                 description: string;
             };
             to?: undefined;
+            url?: undefined;
+            events?: undefined;
+            webhook_id?: undefined;
+            postcard_id?: undefined;
+        };
+        required: string[];
+    };
+} | {
+    name: string;
+    description: string;
+    inputSchema: {
+        type: "object";
+        properties: {
+            url: {
+                type: "string";
+                description: string;
+            };
+            events: {
+                type: "array";
+                description: string;
+                items: {
+                    type: "string";
+                };
+            };
+            to?: undefined;
+            from?: undefined;
+            message?: undefined;
+            image_url?: undefined;
+            recipients?: undefined;
+            webhook_id?: undefined;
+            postcard_id?: undefined;
+        };
+        required: string[];
+    };
+} | {
+    name: string;
+    description: string;
+    inputSchema: {
+        type: "object";
+        properties: {
+            webhook_id: {
+                type: "string";
+                description: string;
+            };
+            to?: undefined;
+            from?: undefined;
+            message?: undefined;
+            image_url?: undefined;
+            recipients?: undefined;
+            url?: undefined;
+            events?: undefined;
             postcard_id?: undefined;
         };
         required: string[];
@@ -209,6 +266,9 @@ export declare const TOOLS: ({
             message?: undefined;
             image_url?: undefined;
             recipients?: undefined;
+            url?: undefined;
+            events?: undefined;
+            webhook_id?: undefined;
         };
         required: string[];
     };
