@@ -9,7 +9,10 @@ import type {
   CreateWebhookParams,
   WebhookResponse,
   WebhookListResponse,
+  PreviewPostcardResponse,
+  BulkStatusResponse,
 } from './types.js'
+import { VERSION } from './version.js'
 
 const DEFAULT_BASE_URL = 'https://postcard.bot'
 
@@ -19,7 +22,7 @@ export class PostcardBotClient {
 
   constructor(apiKey: string, baseUrl?: string) {
     this.apiKey = apiKey
-    this.baseUrl = baseUrl || DEFAULT_BASE_URL
+    this.baseUrl = (baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, '')
   }
 
   private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -29,12 +32,15 @@ export class PostcardBotClient {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'User-Agent': '@postcardbot/mcp-server/1.1.1',
+        'User-Agent': `@postcardbot/mcp-server/${VERSION}`,
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: AbortSignal.timeout(30000),
     })
 
-    const data = await res.json()
+    const data = await res.json().catch(() => {
+      throw new Error(`HTTP ${res.status}: the API returned a non-JSON response`)
+    })
 
     if (!res.ok) {
       const errorMsg = data.error || `API error: ${res.status}`
@@ -50,6 +56,14 @@ export class PostcardBotClient {
 
   async sendPostcard(params: SendPostcardParams): Promise<SendPostcardResponse> {
     return this.request<SendPostcardResponse>('POST', '/postcards', params)
+  }
+
+  async previewPostcard(params: SendPostcardParams): Promise<PreviewPostcardResponse> {
+    return this.request<PreviewPostcardResponse>('POST', '/postcards/preview', params)
+  }
+
+  async getBulkStatus(id: string): Promise<BulkStatusResponse> {
+    return this.request<BulkStatusResponse>('GET', `/postcards/bulk/${encodeURIComponent(id)}`)
   }
 
   async bulkSend(params: BulkSendParams): Promise<BulkSendResponse> {

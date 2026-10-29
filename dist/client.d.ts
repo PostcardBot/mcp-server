@@ -1,10 +1,12 @@
-import type { SendPostcardParams, SendPostcardResponse, BulkSendParams, BulkSendResponse, PostcardStatusResponse, PricingResponse, BalanceResponse, CreateWebhookParams, WebhookResponse, WebhookListResponse } from './types.js';
+import type { SendPostcardParams, SendPostcardResponse, BulkSendParams, BulkSendResponse, PostcardStatusResponse, PricingResponse, BalanceResponse, CreateWebhookParams, WebhookResponse, WebhookListResponse, PreviewPostcardResponse, BulkStatusResponse } from './types.js';
 export declare class PostcardBotClient {
     private apiKey;
     private baseUrl;
     constructor(apiKey: string, baseUrl?: string);
     private request;
     sendPostcard(params: SendPostcardParams): Promise<SendPostcardResponse>;
+    previewPostcard(params: SendPostcardParams): Promise<PreviewPostcardResponse>;
+    getBulkStatus(id: string): Promise<BulkStatusResponse>;
     bulkSend(params: BulkSendParams): Promise<BulkSendResponse>;
     getPostcardStatus(id: string): Promise<PostcardStatusResponse>;
     getPricing(): Promise<PricingResponse>;

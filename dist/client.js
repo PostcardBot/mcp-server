@@ -1,13 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PostcardBotClient = void 0;
+const version_js_1 = require("./version.js");
 const DEFAULT_BASE_URL = 'https://postcard.bot';
 class PostcardBotClient {
     apiKey;
     baseUrl;
     constructor(apiKey, baseUrl) {
         this.apiKey = apiKey;
-        this.baseUrl = baseUrl || DEFAULT_BASE_URL;
+        this.baseUrl = (baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, '');
     }
     async request(method, path, body) {
         const url = `${this.baseUrl}/api/v1${path}`;
@@ -16,11 +17,14 @@ class PostcardBotClient {
             headers: {
                 'Authorization': `Bearer ${this.apiKey}`,
                 'Content-Type': 'application/json',
-                'User-Agent': '@postcardbot/mcp-server/1.1.1',
+                'User-Agent': `@postcardbot/mcp-server/${version_js_1.VERSION}`,
             },
             ...(body ? { body: JSON.stringify(body) } : {}),
+            signal: AbortSignal.timeout(30000),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => {
+            throw new Error(`HTTP ${res.status}: the API returned a non-JSON response`);
+        });
         if (!res.ok) {
             const errorMsg = data.error || `API error: ${res.status}`;
             const details = data.details ? ` - ${data.details}` : '';
@@ -33,6 +37,12 @@ class PostcardBotClient {
     }
     async sendPostcard(params) {
         return this.request('POST', '/postcards', params);
+    }
+    async previewPostcard(params) {
+        return this.request('POST', '/postcards/preview', params);
+    }
+    async getBulkStatus(id) {
+        return this.request('GET', `/postcards/bulk/${encodeURIComponent(id)}`);
     }
     async bulkSend(params) {
         return this.request('POST', '/postcards/bulk', params);
