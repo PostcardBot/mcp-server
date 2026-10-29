@@ -4,109 +4,109 @@ export declare const TOOLS: ({
     inputSchema: {
         type: "object";
         properties: {
-            to: {
-                type: "object";
+            image_fit_mode: {
+                type: string;
+                enum: string[];
                 description: string;
+            };
+            message: {
+                type: string;
+                maxLength: number;
+                description: string;
+            };
+            image_url: {
+                type: string;
+                description: string;
+            };
+            back_template: {
+                type: string;
+                enum: string[];
+                description: string;
+            };
+            to: {
+                description: string;
+                type: "object";
                 properties: {
                     name: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     address_line1: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     address_line2: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     city: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     state: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     zip: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     country: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                 };
                 required: string[];
             };
             from: {
-                type: "object";
                 description: string;
+                type: "object";
                 properties: {
                     name: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     address_line1: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     address_line2: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     city: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     state: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     zip: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     country: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                 };
                 required: string[];
             };
-            message: {
-                type: "string";
-                description: string;
-            };
-            image_url: {
-                type: "string";
-                description: string;
-            };
-            recipients?: undefined;
-            url?: undefined;
-            events?: undefined;
-            webhook_id?: undefined;
-            postcard_id?: undefined;
         };
         required: string[];
     };
-} | {
-    name: string;
-    description: string;
-    inputSchema: {
-        type: "object";
-        properties: {
-            to?: undefined;
-            from?: undefined;
-            message?: undefined;
-            image_url?: undefined;
-            recipients?: undefined;
-            url?: undefined;
-            events?: undefined;
-            webhook_id?: undefined;
-            postcard_id?: undefined;
-        };
-        required?: undefined;
+    annotations: {
+        readOnlyHint: boolean;
+        destructiveHint: boolean;
+        idempotentHint: boolean;
+        openWorldHint: boolean;
     };
 } | {
     name: string;
@@ -114,38 +114,75 @@ export declare const TOOLS: ({
     inputSchema: {
         type: "object";
         properties: {
-            recipients: {
-                type: "array";
+            postcard_id?: undefined;
+            url?: undefined;
+            events?: undefined;
+            webhook_id?: undefined;
+        };
+        required?: undefined;
+    };
+    annotations: {
+        readOnlyHint: boolean;
+        destructiveHint: boolean;
+        idempotentHint: boolean;
+        openWorldHint: boolean;
+    };
+} | {
+    name: string;
+    description: string;
+    inputSchema: {
+        type: "object";
+        properties: {
+            message: {
+                type: string;
+                maxLength: number;
                 description: string;
+            };
+            image_url: {
+                type: string;
+                description: string;
+            };
+            back_template: {
+                type: string;
+                enum: string[];
+                description: string;
+            };
+            recipients: {
+                type: string;
+                minItems: number;
+                maxItems: number;
                 items: {
                     type: "object";
                     properties: {
                         name: {
-                            type: "string";
+                            type: string;
+                            maxLength: number;
                             description: string;
                         };
                         address_line1: {
-                            type: "string";
+                            type: string;
+                            maxLength: number;
                             description: string;
                         };
                         address_line2: {
-                            type: "string";
+                            type: string;
+                            maxLength: number;
                             description: string;
                         };
                         city: {
-                            type: "string";
+                            type: string;
                             description: string;
                         };
                         state: {
-                            type: "string";
+                            type: string;
                             description: string;
                         };
                         zip: {
-                            type: "string";
+                            type: string;
                             description: string;
                         };
                         country: {
-                            type: "string";
+                            type: string;
                             description: string;
                         };
                     };
@@ -154,102 +191,53 @@ export declare const TOOLS: ({
             };
             from: {
                 type: "object";
-                description: string;
                 properties: {
                     name: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     address_line1: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     address_line2: {
-                        type: "string";
+                        type: string;
+                        maxLength: number;
                         description: string;
                     };
                     city: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     state: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     zip: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                     country: {
-                        type: "string";
+                        type: string;
                         description: string;
                     };
                 };
                 required: string[];
             };
-            message: {
-                type: "string";
-                description: string;
-            };
-            image_url: {
-                type: "string";
-                description: string;
-            };
-            to?: undefined;
+            postcard_id?: undefined;
             url?: undefined;
             events?: undefined;
             webhook_id?: undefined;
-            postcard_id?: undefined;
         };
         required: string[];
     };
-} | {
-    name: string;
-    description: string;
-    inputSchema: {
-        type: "object";
-        properties: {
-            url: {
-                type: "string";
-                description: string;
-            };
-            events: {
-                type: "array";
-                description: string;
-                items: {
-                    type: "string";
-                };
-            };
-            to?: undefined;
-            from?: undefined;
-            message?: undefined;
-            image_url?: undefined;
-            recipients?: undefined;
-            webhook_id?: undefined;
-            postcard_id?: undefined;
-        };
-        required: string[];
-    };
-} | {
-    name: string;
-    description: string;
-    inputSchema: {
-        type: "object";
-        properties: {
-            webhook_id: {
-                type: "string";
-                description: string;
-            };
-            to?: undefined;
-            from?: undefined;
-            message?: undefined;
-            image_url?: undefined;
-            recipients?: undefined;
-            url?: undefined;
-            events?: undefined;
-            postcard_id?: undefined;
-        };
-        required: string[];
+    annotations: {
+        readOnlyHint: boolean;
+        destructiveHint: boolean;
+        idempotentHint: boolean;
+        openWorldHint: boolean;
     };
 } | {
     name: string;
@@ -258,18 +246,71 @@ export declare const TOOLS: ({
         type: "object";
         properties: {
             postcard_id: {
-                type: "string";
+                type: string;
+                minLength: number;
                 description: string;
             };
-            to?: undefined;
-            from?: undefined;
-            message?: undefined;
-            image_url?: undefined;
-            recipients?: undefined;
             url?: undefined;
             events?: undefined;
             webhook_id?: undefined;
         };
         required: string[];
+    };
+    annotations: {
+        readOnlyHint: boolean;
+        destructiveHint: boolean;
+        idempotentHint: boolean;
+        openWorldHint: boolean;
+    };
+} | {
+    name: string;
+    description: string;
+    inputSchema: {
+        type: "object";
+        properties: {
+            url: {
+                type: string;
+                description: string;
+            };
+            events: {
+                type: string;
+                minItems: number;
+                items: {
+                    type: string;
+                    enum: string[];
+                };
+            };
+            postcard_id?: undefined;
+            webhook_id?: undefined;
+        };
+        required: string[];
+    };
+    annotations: {
+        readOnlyHint: boolean;
+        destructiveHint: boolean;
+        idempotentHint: boolean;
+        openWorldHint: boolean;
+    };
+} | {
+    name: string;
+    description: string;
+    inputSchema: {
+        type: "object";
+        properties: {
+            webhook_id: {
+                type: string;
+                minLength: number;
+            };
+            postcard_id?: undefined;
+            url?: undefined;
+            events?: undefined;
+        };
+        required: string[];
+    };
+    annotations: {
+        readOnlyHint: boolean;
+        destructiveHint: boolean;
+        idempotentHint: boolean;
+        openWorldHint: boolean;
     };
 })[];

@@ -1,68 +1,21 @@
 # @postcardbot/mcp-server
 
-[![npm version](https://img.shields.io/npm/v/@postcardbot/mcp-server)](https://www.npmjs.com/package/@postcardbot/mcp-server)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+A local MCP server for [Postcard.bot](https://postcard.bot). Preview, send and track
+physical postcards from an MCP-compatible client, using your Postcard.bot API key.
 
-<a href="https://glama.ai/mcp/servers/PostcardBot/postcardbot-mcp-server">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/PostcardBot/postcardbot-mcp-server/badge" alt="PostcardBot MCP server" />
-</a>
+## Install and connect
 
-**Send real postcards from code.** MCP server for [Postcard.bot](https://postcard.bot) — let AI agents send physical postcards worldwide.
+Requires **Node.js 20+**. Get a key in your [account](https://postcard.bot/account).
+You can preview before funding; sending requires [prepaid balance](https://postcard.bot/buy-credits).
 
-Works with Claude Desktop, Claude Code, Cursor, Windsurf, and any MCP-compatible client.
-
-## Hosted Server (Recommended)
-
-The easiest way to get started — no API key needed, no local install. Just add the URL and sign in with your Postcard.bot account:
-
-```
-https://postcard.bot/api/mcp
-```
-
-**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "postcardbot": {
-      "url": "https://postcard.bot/api/mcp"
-    }
-  }
-}
-```
-
-**Claude Code:**
-
-```bash
-claude mcp add --transport http postcardbot https://postcard.bot/api/mcp
-```
-
-Your MCP client will open a browser for you to sign in with Google or email. Click "Allow" and you're ready to send postcards.
-
----
-
-## Local Server (npm)
-
-If you prefer running the server locally with an API key:
-
-### 1. Get an API key
-
-Sign up at [postcard.bot](https://postcard.bot), go to your [account page](https://postcard.bot/account), and generate an API key.
-
-### 2. Add balance
-
-Add credits at [postcard.bot/buy-credits](https://postcard.bot/buy-credits) or via the API. Prepaid balance — volume pricing from $0.69/postcard.
-
-### 3. Configure your MCP client
-
-**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+For clients that use an `mcpServers` configuration:
 
 ```json
 {
   "mcpServers": {
     "postcardbot": {
       "command": "npx",
-      "args": ["-y", "@postcardbot/mcp-server"],
+      "args": ["-y", "@postcardbot/mcp-server@latest"],
       "env": {
         "POSTCARDBOT_API_KEY": "pk_live_your_key_here"
       }
@@ -71,127 +24,155 @@ Add credits at [postcard.bot/buy-credits](https://postcard.bot/buy-credits) or v
 }
 ```
 
-**Claude Code:**
+Keep the real key private. Restart the MCP client after changing configuration or
+updating the package. Pin `@postcardbot/mcp-server@1.3.0` for a reproducible version,
+or use `@latest` to follow new releases. The server uses stdio; it is not an HTTP
+server and does not open a local listening port.
 
-```bash
-claude mcp add postcardbot -- npx -y @postcardbot/mcp-server
+| Environment variable | Required | Purpose |
+| --- | --- | --- |
+| `POSTCARDBOT_API_KEY` | Yes | API key from your account |
+| `POSTCARDBOT_API_URL` | No | Server origin override; defaults to `https://postcard.bot` |
+
+An origin override is not a sandbox switch. `send_postcard` and `bulk_send` create
+paid physical-mail orders. The wrapper does not automatically retry requests:
+a timed-out send may already have been accepted, so check before repeating it.
+
+### Hosted alternative
+
+For a client supporting remote Streamable HTTP and OAuth, use its remote-server
+setup with:
+
+```text
+https://postcard.bot/api/mcp
 ```
 
-Then set the environment variable `POSTCARDBOT_API_KEY` in your shell.
+Follow the client's sign-in flow. This hosted service is deployed separately;
+its advertised tool list may differ from the local npm package documented below.
+Do not put a remote URL into a client's local stdio configuration.
 
-**Cursor / Windsurf** — add the same JSON config to your MCP settings.
+## Tools in 1.3.0
 
-## Tools
+| Tool | Behavior |
+| --- | --- |
+| `preview_postcard` | Price, balance sufficiency, image/QR checks, back preview and warnings; **no mail or balance deduction** |
+| `send_postcard` | Place one paid order; may return `pending_review` |
+| `bulk_send` | Queue 1–5,000 recipients with shared artwork and sender |
+| `check_balance` | Read actual account prices, balance, lifetime top-ups and any protection expiry |
+| `get_pricing` | Read current public pricing and subscription availability |
+| `check_status` | Read postcard or bulk-job status, including failure/refund information |
+| `list_webhooks` | List the account's webhook endpoints |
+| `create_webhook` | Register an HTTPS endpoint; returns its signing secret once |
+| `delete_webhook` | Remove a webhook by ID |
 
-### `send_postcard`
+Read-only tools are annotated as such. Paid sends are marked non-idempotent and
+write-capable so clients can distinguish them from previews.
 
-Send a physical postcard. Cards are printed and shipped within 24 hours. Delivery takes 5-10 business days.
+### Preview and single-card inputs
 
-**Parameters:**
-- `to` — Recipient address (`name`, `address_line1`, `city` required; `address_line2`, `state`, `zip`, `country` optional)
-- `from` — Sender/return address (same fields)
-- `message` — Back-of-card message (max 350 characters)
-- `image_url` — Front image URL (publicly accessible, min 1875x1275px recommended)
+- `to` and `from`: `name`, `address_line1`, `city`; optional `address_line2`.
+  Supply `state` and `zip` for US addresses. `country` defaults to US; use two-letter codes.
+- `message`: up to 350 characters.
+- `image_url`: a publicly accessible HTTPS image URL. Preview checks the image
+  dimensions and fit for the destination.
+- `image_fit_mode`: optional `cover` (crop to fill) or `contain` (preserve with borders).
+- `back_template`: optional `classic` or `heritage`.
 
-**Example prompt:**
-> "Send a postcard to Jane Doe at 123 Main St, San Francisco CA 94102 with a photo of the Golden Gate Bridge and the message 'Wish you were here!'"
+Start with a prompt such as:
 
-### `bulk_send`
+> Preview a postcard using this photo, sender, recipient and message. Show me the
+> price and any warnings, but do not send it yet.
 
-Send the same postcard to multiple recipients (async). Up to 5,000 recipients per request. Cards are processed in background batches.
+A preview does not reserve a price or balance. Call `check_balance` for current
+account rates and explicitly request a send when ready.
 
-**Parameters:**
-- `recipients` — Array of recipient addresses (max 5,000, same fields as `to` above)
-- `from` — Sender/return address (same for all postcards)
-- `message` — Back-of-card message (max 350 characters)
-- `image_url` — Front image URL (publicly accessible, min 1875x1275px recommended)
+### Bulk and delivery status
 
-Returns a `bulk_id` immediately. Cards are processed in the background (~25/minute). Use `check_status` to poll progress.
+`bulk_send` accepts `recipients`, `from`, `message`, `image_url`, and optional
+`back_template`. `{{name}}` expands to the recipient's first name. Cost is reserved
+upfront and processing is asynchronous; review holds can delay printing.
 
-Total cost is reserved upfront. Failed cards are automatically refunded.
+Pass either the postcard ID or `bulk_id` in `check_status.postcard_id`:
 
-### `check_balance`
-
-Check account balance, lifetime top-up amount, and current volume pricing tier.
-
-### `get_pricing`
-
-Get all volume pricing tiers.
-
-### `check_status`
-
-Check delivery status of a previously sent postcard.
-
-**Parameters:**
-- `postcard_id` — The ID returned from `send_postcard`
-
-### `list_webhooks`
-
-List all registered webhooks for your account.
-
-### `create_webhook`
-
-Register a URL to receive postcard event notifications (sent, delivered, failed, returned). URL must use HTTPS. Max 10 webhooks per account.
-
-**Parameters:**
-- `url` — HTTPS URL to receive webhook POST requests
-- `events` — Event types: `postcard.created`, `postcard.sent`, `postcard.delivered`, `postcard.failed`, `postcard.returned`
-
-The signing secret is returned only once — save it securely. Events are signed with HMAC-SHA256 in the `X-PostcardBot-Signature` header.
-
-### `delete_webhook`
-
-Delete a registered webhook by its ID.
-
-**Parameters:**
-- `webhook_id` — The webhook ID (wh_...)
-
-## REST API
-
-You can also use the HTTP API directly without MCP:
-
-```bash
-curl -X POST https://postcard.bot/api/v1/postcards \
-  -H "Authorization: Bearer pk_live_your_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "to": {"name": "Jane Doe", "address_line1": "123 Main St", "city": "San Francisco", "state": "CA", "zip": "94102"},
-    "from": {"name": "John Smith", "address_line1": "456 Oak Ave", "city": "New York", "state": "NY", "zip": "10001"},
-    "message": "Wish you were here!",
-    "image_url": "https://example.com/photo.jpg"
-  }'
+```json
+{"postcard_id": "bulk_example"}
 ```
 
-Full API docs and OpenAPI spec: [postcard.bot/developers](https://postcard.bot/developers)
+- **`pending_review`**: paid and queued; not yet submitted for printing.
+- **`sent`**: accepted for printing; not proof of delivery.
+- **`failed` / `cancelled`**: check the returned reason and refund information.
+- A bulk job's **`processed`** count may include cards still under review.
 
-## Environment Variables
+Delivery estimates are not guarantees. Fulfilment routing is internal; no supplier
+field is required or displayed by the package.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `POSTCARDBOT_API_KEY` | Yes | Your API key from postcard.bot/account |
-| `POSTCARDBOT_API_URL` | No | Override API base URL (default: https://postcard.bot) |
+### Webhooks
+
+`create_webhook` takes `url` and an `events` array. Supported event names are
+`postcard.created`, `postcard.sent`, `postcard.delivered`, `postcard.failed`, and
+`postcard.returned`. Save the returned secret securely.
+
+Verify the raw body against `X-PostcardBot-Signature`:
+` t=UNIX_SECONDS,v1=BASE64_HMAC_SHA256 `, signing `timestamp.rawBody` with the issued
+secret. Preserve Base64 padding. Payloads have an `event`, `timestamp`, and `data`
+envelope; postcard fields are inside `data`. Bulk summaries use `data.is_bulk` and
+`data.bulk_id`. Make receiver-side business actions idempotent.
+
+[Node, Python and cURL examples](https://github.com/PostcardBot/postcard-examples)
+include tested webhook receivers.
 
 ## Pricing
 
-Volume pricing (based on lifetime top-up amount):
+USD per postcard, including printing and postage. Snapshot: **October 28, 2026**.
+Use `get_pricing` for live public rates and `check_balance` for account-specific rates.
 
-| Tier | Lifetime top-up | USA | International |
-|------|-----------------|-----|---------------|
-| Pay-as-you-go | $0 | $1.99 | $2.99 |
-| Starter | $1-$19 | $1.49 | $2.49 |
-| Bronze | $20-$49 | $1.29 | $2.29 |
-| Silver | $50-$199 | $0.99 | $1.99 |
-| Gold | $200-$499 | $0.85 | $1.85 |
-| Platinum | $500-$999 | $0.79 | $1.79 |
-| Diamond | $1,000+ | $0.69 | $1.69 |
+| Option | Lifetime paid top-ups | US | International |
+| --- | ---: | ---: | ---: |
+| Pay as you go | None | $2.99 | $2.99 |
+| Prepaid | $5+ | $1.99 | $2.79 |
+| Prepaid | $50+ | $1.69 | $2.69 |
+| Prepaid | $500+ | $1.49 | $2.49 |
+
+Minimum top-up is $5. These are cumulative funding thresholds, not card counts.
+Balance and lifetime progress do not expire; per-card rates may change. Eligible
+existing funded accounts keep previous rates through **December 31, 2026 Pacific**.
+`check_balance` reports the actual rate and `pricing_protected_until` where applicable.
+
+### White-label early access
+
+[White-label plans](https://postcard.bot/business/white-label) are announced, with
+free early-access requests. Paid subscriptions are not open yet. Standard MCP
+sending does not automatically enable custom white-label designs.
+
+| Planned plan | Subscription | US/card | International/card |
+| --- | --- | ---: | ---: |
+| Business | $99/month | $0.99 | $2.19 |
+| Pro monthly | $199/month | $0.89 | $2.09 |
+| Pro yearly | $1,999/year | $0.89 | $2.09 |
+
+Cards are charged separately from subscription fees.
+
+## Development
+
+```bash
+npm ci
+npm test
+npm pack
+```
+
+Tests use a local mock API and real MCP stdio transport; no real key, payment or
+physical mail is needed. `prepack` rebuilds the distributable so the npm artifact
+matches the TypeScript source. Version information is read from `package.json`.
 
 ## Links
 
-- [Postcard.bot](https://postcard.bot)
-- [Developer Docs](https://postcard.bot/developers)
-- [OpenAPI Spec](https://postcard.bot/api/v1/openapi)
-- [Buy Credits](https://postcard.bot/buy-credits)
-- [npm Package](https://www.npmjs.com/package/@postcardbot/mcp-server)
+- [Developer docs](https://postcard.bot/developers)
+- [OpenAPI](https://postcard.bot/api/v1/openapi)
+- [API examples](https://github.com/PostcardBot/postcard-examples)
+- [US artwork guide](https://postcard.bot/api/v1/designs/guides/us)
+- [International artwork guide](https://postcard.bot/api/v1/designs/guides/international)
+- [Source and issues](https://github.com/PostcardBot/mcp-server)
+- [Mailing terms](https://postcard.bot/terms)
 
 ## License
 

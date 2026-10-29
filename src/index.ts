@@ -8,6 +8,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { PostcardBotClient } from './client.js'
 import { TOOLS } from './tools.js'
+import { VERSION } from './version.js'
 
 const apiKey = process.env.POSTCARDBOT_API_KEY
 if (!apiKey) {
@@ -24,7 +25,7 @@ const client = new PostcardBotClient(
 )
 
 const server = new Server(
-  { name: '@postcardbot/mcp-server', version: '1.1.1' },
+  { name: '@postcardbot/mcp-server', version: VERSION },
   { capabilities: { tools: {} } }
 )
 
@@ -37,20 +38,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
+      case 'preview_postcard': {
+        const result = await client.previewPostcard(args as unknown as Parameters<typeof client.previewPostcard>[0])
+        return { content: [{ type: 'text', text: 'Preview only — no balance deducted and no postcard sent.\n' + JSON.stringify(result, null, 2) }] }
+      }
       case 'send_postcard': {
         const result = await client.sendPostcard(args as unknown as Parameters<typeof client.sendPostcard>[0])
         return {
           content: [{
             type: 'text',
             text: [
-              `Postcard sent successfully!`,
+              result.status === 'pending_review' ? 'Postcard paid for and queued for review; not yet submitted for printing.' : 'Postcard accepted for printing; this does not confirm delivery.',
+              `Status: ${result.status}`,
+              result.message || null,
               ``,
               `ID: ${result.id}`,
-              `Service: ${result.service}`,
               `Expected delivery: ${result.expected_delivery_date || 'TBD'}`,
               `Price: $${result.price.toFixed(2)}`,
+              result.pricing_tier ? `Pricing tier: ${result.pricing_tier.name} (${result.pricing_tier.source || 'current'})` : null,
               `Balance remaining: $${result.balance_remaining.toFixed(2)}`,
-            ].join('\n'),
+            ].filter(Boolean).join('\n'),
           }],
         }
       }
@@ -66,11 +73,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               `Bulk ID: ${result.bulk_id}`,
               `Total recipients: ${result.total}`,
               `Reserved cost: $${result.total_cost.toFixed(2)}`,
+              result.pricing_tier ? `Pricing tier: ${result.pricing_tier.name} (${result.pricing_tier.source || 'current'})` : null,
               `Status: ${result.status}`,
               ``,
-              `Cards will be processed in background batches (~25/minute).`,
+              `Processing is asynchronous; review holds can delay printing.`,
               `Poll status: ${result.status_url}`,
-            ].join('\n'),
+            ].filter(Boolean).join('\n'),
           }],
         }
       }
@@ -83,9 +91,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             text: [
               `Balance: $${result.balance.toFixed(2)}`,
               `Lifetime top-up: $${result.lifetime_top_up.toFixed(2)}`,
-              `Pricing tier: ${result.tier.name} (Tier ${result.tier.number})`,
+              `Pricing tier: ${result.tier.name} (Tier ${result.tier.number}${result.pricing_source ? `, ${result.pricing_source}` : ''})`,
               `  USA: $${result.current_pricing.usa.toFixed(2)}/postcard`,
               `  International: $${result.current_pricing.international.toFixed(2)}/postcard`,
+              ...(result.pricing_protected_until ? [`Previous rates protected until: ${result.pricing_protected_until}`] : []),
               ``,
               `Top up at: ${result.top_up_url}`,
             ].join('\n'),
@@ -151,6 +160,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'check_status': {
         const typedArgs = args as { postcard_id: string }
+        if (typedArgs.postcard_id.startsWith('bulk_')) {
+          const result = await client.getBulkStatus(typedArgs.postcard_id)
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) + '\nProcessed cards can still be awaiting review; this is not delivery confirmation.' }] }
+        }
         const result = await client.getPostcardStatus(typedArgs.postcard_id)
         return {
           content: [{
@@ -158,11 +171,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             text: [
               `Postcard ${result.id}`,
               `Status: ${result.status}`,
-              `Delivery: ${result.delivery_status || 'pending'}`,
-              `Service: ${result.service || 'unknown'}`,
+              result.error ? `Reason: ${result.error}` : null,
+              result.refund ? `Refund: $${result.refund.amount.toFixed(2)} (${result.refund.kind})` : null,
+              result.queued_since ? `Queued since: ${result.queued_since}` : null,
+              `Delivery: ${result.delivery_status_label || result.delivery_status || 'pending'}`,
               `Expected delivery: ${result.expected_delivery_date || 'TBD'}`,
               `To: ${result.to.name}, ${result.to.city}, ${result.to.country}`,
-            ].join('\n'),
+            ].filter(line => line !== null).join('\n'),
           }],
         }
       }
